@@ -1,0 +1,27 @@
+[project]
+name = "nic2markdown"
+version = "0.1.0"
+description = "Convert MkDocs Material HTML pages to GitHub-compatible Markdown"
+readme = "README.md"
+authors = [
+    { name = "frankshi", email = "401477930@qq.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.28",
+    "beautifulsoup4>=4.12",
+    "markdownify>=0.4",
+    "lxml>=6.1.0",
+]
+
+[project.scripts]
+nic2markdown = "nic2markdown.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9.11,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
