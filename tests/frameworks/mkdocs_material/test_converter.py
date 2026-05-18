@@ -1,48 +1,50 @@
 """Tests for the converter module."""
 
-from nic2markdown.converter import convert
+from nic2markdown.frameworks.mkdocs_material.converter import MkdocsMaterialConverter
+
+converter = MkdocsMaterialConverter()
 
 
 class TestHeadings:
     def test_h1(self):
-        md = convert("<h1>Hello</h1>")
+        md = converter.convert("<h1>Hello</h1>")
         assert md.strip() == "# Hello"
 
     def test_h2(self):
-        md = convert("<h2>Section</h2>")
+        md = converter.convert("<h2>Section</h2>")
         assert md.strip() == "## Section"
 
     def test_heading_with_strong_unwrapped(self):
-        md = convert("<h1><strong>Bold Title</strong></h1>")
+        md = converter.convert("<h1><strong>Bold Title</strong></h1>")
         assert md.strip() == "# Bold Title"
 
 
 class TestParagraphsAndInline:
     def test_paragraph(self):
-        md = convert("<p>Hello world</p>")
+        md = converter.convert("<p>Hello world</p>")
         assert md.strip() == "Hello world"
 
     def test_bold(self):
-        md = convert("<p><strong>bold</strong> text</p>")
+        md = converter.convert("<p><strong>bold</strong> text</p>")
         assert md.strip() == "**bold** text"
 
     def test_italic(self):
-        md = convert("<p><em>italic</em> text</p>")
+        md = converter.convert("<p><em>italic</em> text</p>")
         assert md.strip() == "*italic* text"
 
     def test_inline_code(self):
-        md = convert("<p>Use <code>cmd</code> now</p>")
+        md = converter.convert("<p>Use <code>cmd</code> now</p>")
         assert "`cmd`" in md
 
     def test_link(self):
-        md = convert('<p><a href="https://example.com">click</a></p>')
+        md = converter.convert('<p><a href="https://example.com">click</a></p>')
         assert "[click](https://example.com)" in md
 
 
 class TestCodeBlocks:
     def test_fenced_code_block(self):
         html = '<div class="highlight"><pre><span></span><code>print("hello")\n</code></pre></div>'
-        md = convert(html)
+        md = converter.convert(html)
         assert "```" in md
         assert 'print("hello")' in md
 
@@ -55,7 +57,7 @@ class TestAdmonitions:
             '<p>Some content.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!NOTE]" in md
         assert "**Note Title**" in md
         assert "Some content." in md
@@ -67,7 +69,7 @@ class TestAdmonitions:
             '<p>Watch out.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!WARNING]" in md
         assert "**Careful**" in md
 
@@ -78,7 +80,7 @@ class TestAdmonitions:
             '<p>Do not proceed.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!CAUTION]" in md
 
     def test_tip(self):
@@ -88,7 +90,7 @@ class TestAdmonitions:
             '<p>Use this trick.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!TIP]" in md
 
     def test_success(self):
@@ -98,7 +100,7 @@ class TestAdmonitions:
             '<p>It worked.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!TIP]" in md
 
     def test_info_as_note(self):
@@ -108,7 +110,7 @@ class TestAdmonitions:
             '<p>Just so you know.</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!NOTE]" in md
 
     def test_question_as_important(self):
@@ -118,7 +120,7 @@ class TestAdmonitions:
             '<p>Why?</p>'
             '</div>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "> [!IMPORTANT]" in md
 
 
@@ -135,7 +137,7 @@ class TestTaskLists:
             '</li>'
             '</ul>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "[ ]" in md
         assert "Do something" in md
 
@@ -151,7 +153,7 @@ class TestTaskLists:
             '</li>'
             '</ul>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "[x]" in md
         assert "Done" in md
 
@@ -159,7 +161,7 @@ class TestTaskLists:
 class TestHeaderlinkRemoval:
     def test_headerlink_removed(self):
         html = '<h1 id="test">Title<a class="headerlink" href="#test">&para;</a></h1>'
-        md = convert(html)
+        md = converter.convert(html)
         assert "headerlink" not in md
         assert "&para;" not in md
         assert "# Title" in md
@@ -173,21 +175,21 @@ class TestTables:
             '<tbody><tr><td>1</td><td>2</td></tr></tbody>'
             '</table>'
         )
-        md = convert(html)
+        md = converter.convert(html)
         assert "| A | B |" in md
         assert "| 1 | 2 |" in md
 
 
 class TestRelativeLinkFixing:
     def test_absolute_url_unchanged(self):
-        md = convert(
+        md = converter.convert(
             '<p><a href="https://other.com/page">link</a></p>',
             base_url="https://example.com/docs/"
         )
         assert "[link](https://other.com/page)" in md
 
     def test_relative_url_fixed(self):
-        md = convert(
+        md = converter.convert(
             '<p><a href="next.html">next</a></p>',
             base_url="https://example.com/docs/page/"
         )

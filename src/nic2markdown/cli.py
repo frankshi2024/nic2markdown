@@ -4,9 +4,9 @@ import argparse
 import sys
 
 from .fetcher import fetch, FetchError
-from .validator import validate, ValidationError
-from .extractor import extract_article, ExtractionError
-from .converter import convert
+from .gateway import get_converter, get_framework_name, UnsupportedFrameworkError
+from .frameworks.mkdocs_material.extractor import ExtractionError
+from .frameworks.mkdocs_material.sidebar import format_sidebar_markdown
 from .writer import write_markdown
 
 
@@ -17,17 +17,24 @@ def main() -> None:
     )
     parser.add_argument(
         "url",
-        help="URL of the MkDocs Material page to convert",
+        help="URL of the documentation page to convert",
     )
     parser.add_argument(
         "-o", "--output-dir",
-        default=".",
-        help="Directory to write the output Markdown file (default: current directory)",
+        default="output",
+        help="Directory to write the output Markdown file (default: output/)",
+    )
+    parser.add_argument(
+        "-s", "--sidebar",
+        action="store_true",
+        default=False,
+        help="Extract and append sidebar navigation links (default: off)",
     )
     args = parser.parse_args()
 
     url = args.url
     output_dir = args.output_dir
+    include_sidebar = args.sidebar
 
     try:
         # Step 1: Fetch
@@ -36,24 +43,38 @@ def main() -> None:
         if final_url != url:
             print(f"  (redirected to {final_url})")
 
-        # Step 2: Validate
-        version = validate(html)
-        print(f"  Detected: {version}")
+        # Step 2: Detect framework & get converter
+        print("Detecting framework ...")
+        framework_name = get_framework_name(html)
+        print(f"  Detected: {framework_name}")
+
+        converter = get_converter(html)
 
         # Step 3: Extract article
-        article_html = extract_article(html, base_url=final_url)
+        article_html = converter.extract_article(html, base_url=final_url)
         word_count = len(article_html.split())
         print(f"  Article extracted ({word_count} words)")
 
         # Step 4: Convert
         print("Converting to Markdown ...")
-        markdown = convert(article_html, base_url=final_url)
+        markdown = converter.convert(article_html, base_url=final_url)
 
-        # Step 5: Write
+        # Step 5: Optionally extract sidebar links
+        if include_sidebar:
+            print("Extracting sidebar links ...")
+            sidebar_links = converter.extract_sidebar_links(html, base_url=final_url)
+            if sidebar_links:
+                sidebar_md = format_sidebar_markdown(sidebar_links)
+                markdown += "\n" + sidebar_md
+                print(f"  {len(sidebar_links)} sidebar links appended")
+            else:
+                print("  No sidebar links found")
+
+        # Step 6: Write
         out_path = write_markdown(markdown, url=final_url, output_dir=output_dir)
         print(f"\n[OK] Written to: {out_path}")
 
-    except ValidationError as e:
+    except UnsupportedFrameworkError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
     except FetchError as e:

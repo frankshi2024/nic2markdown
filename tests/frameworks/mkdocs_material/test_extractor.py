@@ -1,7 +1,9 @@
 """Tests for the extractor module."""
 
 import pytest
-from nic2markdown.extractor import extract_article, ExtractionError
+from nic2markdown.frameworks.mkdocs_material.extractor import MkdocsMaterialExtractor, ExtractionError
+
+extractor = MkdocsMaterialExtractor()
 
 MKDOCS_FULL_PAGE = """<!DOCTYPE html>
 <html>
@@ -47,18 +49,18 @@ MKDOCS_PAGE_NO_ARTICLE = """<!DOCTYPE html>
 
 class TestExtractArticle:
     def test_extracts_article_content(self):
-        result = extract_article(MKDOCS_FULL_PAGE)
+        result = extractor.extract(MKDOCS_FULL_PAGE)
         assert "Hello World" in result
         assert "main" in result
         assert "content" in result
 
     def test_removes_headerlink(self):
-        result = extract_article(MKDOCS_FULL_PAGE)
+        result = extractor.extract(MKDOCS_FULL_PAGE)
         assert "headerlink" not in result
         assert "&para;" not in result
 
     def test_fixes_relative_links(self):
-        result = extract_article(
+        result = extractor.extract(
             MKDOCS_FULL_PAGE,
             base_url="https://example.com/docs/page/"
         )
@@ -67,7 +69,7 @@ class TestExtractArticle:
                "href=\"https://example.com/docs/page/next.html\"" in result
 
     def test_fixes_relative_images(self):
-        result = extract_article(
+        result = extractor.extract(
             MKDOCS_FULL_PAGE,
             base_url="https://example.com/docs/page/"
         )
@@ -76,10 +78,10 @@ class TestExtractArticle:
 
     def test_raises_when_no_article(self):
         with pytest.raises(ExtractionError, match="Could not find article"):
-            extract_article(MKDOCS_PAGE_NO_ARTICLE)
+            extractor.extract(MKDOCS_PAGE_NO_ARTICLE)
 
     def test_keeps_content_structure(self):
-        result = extract_article(MKDOCS_FULL_PAGE)
+        result = extractor.extract(MKDOCS_FULL_PAGE)
         assert "<h1" in result
         assert "<p>" in result
         assert "<strong>" in result

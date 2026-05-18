@@ -34,7 +34,7 @@ def _timestamp() -> str:
     return datetime.now().strftime("%Y%m%d%H%M%S")
 
 
-def write_markdown(content: str, url: str, output_dir: str = ".") -> str:
+def write_markdown(content: str, url: str, output_dir: str = "output") -> str:
     """Write markdown content to a file and return the file path.
 
     File name format: {stem}.{14-digit-timestamp}.md

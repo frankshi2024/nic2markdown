@@ -27,45 +27,34 @@ def _fix_relative_urls(soup: BeautifulSoup, base_url: str) -> None:
 
 def _remove_noise(soup: BeautifulSoup) -> None:
     """Remove elements that don't translate well to Markdown."""
-    # Headerlink anchors (the ¶ permalink)
     for a in soup.find_all("a", class_="headerlink"):
         a.extract()
-
-    # Code copy buttons (mkdocs-material adds these)
     for btn in soup.find_all("button", class_="md-clipboard"):
         btn.extract()
-
-    # Empty spans that mkdocs adds for annotation
     for span in soup.find_all("span", class_="md-ellipsis"):
         span.unwrap()
 
 
-def extract_article(html: str, base_url: str = "") -> str:
-    """Extract the article content from a MkDocs Material HTML page.
+class MkdocsMaterialExtractor:
+    """Extract article content from MkDocs Material pages."""
 
-    Looks for <article class="md-content__inner md-typeset">.
+    def extract(self, html: str, base_url: str = "") -> str:
+        """Extract article inner HTML from the full page HTML.
 
-    Args:
-        html: The full page HTML.
-        base_url: The base URL for resolving relative links.
+        Looks for <article class="md-content__inner md-typeset">.
 
-    Returns:
-        The inner HTML of the article element.
+        Raises ExtractionError if no article element is found.
+        """
+        soup = BeautifulSoup(html, "lxml")
 
-    Raises:
-        ExtractionError: If no article element is found.
-    """
-    soup = BeautifulSoup(html, "lxml")
+        article = soup.find("article", class_="md-content__inner")
+        if article is None:
+            raise ExtractionError(
+                "Error: Could not find article content. "
+                "The page may not be a standard MkDocs Material page."
+            )
 
-    article = soup.find("article", class_="md-content__inner")
-    if article is None:
-        raise ExtractionError(
-            "Error: Could not find article content. "
-            "The page may not be a standard MkDocs Material page."
-        )
+        _remove_noise(article)
+        _fix_relative_urls(article, base_url)
 
-    _remove_noise(article)
-    _fix_relative_urls(article, base_url)
-
-    # Return the inner HTML of the article
-    return article.decode_contents()
+        return article.decode_contents()

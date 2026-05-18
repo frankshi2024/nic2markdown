@@ -1,7 +1,6 @@
 """Tests for the validator module."""
 
-import pytest
-from nic2markdown.validator import is_mkdocs_material, get_generator_version, validate, ValidationError
+from nic2markdown.frameworks.mkdocs_material.validator import detect, get_version
 
 MKDOCS_HTML = """<!DOCTYPE html>
 <html>
@@ -42,39 +41,25 @@ NO_GENERATOR_HTML = """<!DOCTYPE html>
 </html>"""
 
 
-class TestIsMkdocsMaterial:
+class TestDetect:
     def test_mkdocs_material(self):
-        assert is_mkdocs_material(MKDOCS_HTML) is True
+        assert detect(MKDOCS_HTML) is True
 
     def test_mkdocs_material_alt_version(self):
-        assert is_mkdocs_material(MKDOCS_HTML_ALT) is True
+        assert detect(MKDOCS_HTML_ALT) is True
 
     def test_non_mkdocs(self):
-        assert is_mkdocs_material(NON_MKDOCS_HTML) is False
+        assert detect(NON_MKDOCS_HTML) is False
 
     def test_no_generator(self):
-        assert is_mkdocs_material(NO_GENERATOR_HTML) is False
+        assert detect(NO_GENERATOR_HTML) is False
 
 
-class TestGetGeneratorVersion:
+class TestGetVersion:
     def test_extracts_version(self):
-        version = get_generator_version(MKDOCS_HTML)
+        version = get_version(MKDOCS_HTML)
         assert version == "mkdocs-1.6.1, mkdocs-material-9.7.6"
 
     def test_returns_none_for_no_generator(self):
-        version = get_generator_version(NO_GENERATOR_HTML)
+        version = get_version(NO_GENERATOR_HTML)
         assert version is None
-
-
-class TestValidate:
-    def test_valid_page(self):
-        version = validate(MKDOCS_HTML)
-        assert "mkdocs" in version
-
-    def test_invalid_page_raises(self):
-        with pytest.raises(ValidationError, match="Not a MkDocs Material page"):
-            validate(NON_MKDOCS_HTML)
-
-    def test_no_generator_raises(self):
-        with pytest.raises(ValidationError, match="Not a MkDocs Material page"):
-            validate(NO_GENERATOR_HTML)
