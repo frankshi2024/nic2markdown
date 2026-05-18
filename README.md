@@ -20,22 +20,39 @@
 
 **前置要求：[uv](https://docs.astral.sh/uv/)**
 
-### Linux / macOS / Git Bash / WSL
+### 方式一：从 GitHub（推荐）
+
+**Linux / macOS / Git Bash / WSL**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/frankshi2024/nic2markdown/main/install.sh | bash
 ```
 
-### Windows PowerShell
+**Windows PowerShell**
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/frankshi2024/nic2markdown/main/install.ps1 | iex
+```
+
+### 方式二：从 Gitee 镜像（国内网络友好）
+
+**Linux / macOS / Git Bash / WSL**
+
+```bash
+curl -fsSL https://gitee.com/frankshi2024/nic2markdown/raw/main/install-gitee.sh | bash
+```
+
+**Windows PowerShell**
+
+```powershell
+iwr -useb https://gitee.com/frankshi2024/nic2markdown/raw/main/install-gitee.ps1 | iex
 ```
 
 ### 手动安装（开发者）
 
 ```bash
 git clone https://github.com/frankshi2024/nic2markdown.git
+# 或国内镜像：git clone https://gitee.com/frankshi2024/nic2markdown.git
 cd nic2markdown
 uv sync
 uv run nic2markdown --help
